@@ -1,7 +1,7 @@
 from nestable_blueprint import NestableBlueprint
 from utils import serialization, db, status
 
-skill = NestableBlueprint('skill', __name__, parent_entity_key="user_id")
+skill = NestableBlueprint('skill', __name__, parent_keys=['user_id'])
 
 
 @skill.route('')
