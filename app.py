@@ -12,7 +12,6 @@ app.register_blueprint(dev.dev, url_prefix='/users/<int:user_id>/dev')
 app.register_blueprint(dev.dev, url_prefix='/devs')
 
 
-
 @app.teardown_appcontext
 def teardown(e):
     db.get_ib_conn().close()
