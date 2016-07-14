@@ -1,5 +1,7 @@
-import json
 from datetime import datetime
+from functools import wraps
+from flask import jsonify, Response
+import json
 
 
 class DatetimeEncoder(json.JSONEncoder):
@@ -10,5 +12,13 @@ class DatetimeEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 
-def sql_dict_as_json(sql_dict):
-    return json.dumps(sql_dict, cls=DatetimeEncoder)
+def serialized(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        r = f(*args, **kwargs)
+        if isinstance(r, Response):
+            # Make this decorator idempotent
+            return r
+        else:
+            return jsonify(r)
+    return decorator
