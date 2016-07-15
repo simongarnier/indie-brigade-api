@@ -15,7 +15,7 @@ def index():
         return cur.fetchall()
 
 
-@user.route('/<int:user_id>')
+@user.route('<int:user_id>')
 @serialization.serialized
 def show(user_id):
     with db.get_ib_cursor() as cur:

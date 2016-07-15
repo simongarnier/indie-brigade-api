@@ -3,6 +3,12 @@ from utils import serialization, db
 from flask import request
 
 skill = NestableBlueprint('skill', __name__, parent_keys=['user_id', 'dev_id', 'role_id'])
+main_skill_query = """
+    SELECT skills.*
+    FROM skills
+    JOIN devs ON skills.id = devs.main_skill_id
+    WHERE {0} = %s;
+"""
 
 
 @skill.route('')
@@ -24,10 +30,18 @@ def index():
         return cur.fetchall()
 
 
-@skill.route('/<int:skill_id>')
+@skill.route('<int:skill_id>')
+@skill.route('main_skill')
 @serialization.serialized
-def show(skill_id):
-    return skill_for_id(skill_id)
+def show(skill_id=None):
+    dev_id = skill.parent_ids['dev_id']
+    user_id = skill.parent_ids['user_id']
+    if skill_id:
+        return skill_for_id(skill_id)
+    elif dev_id:
+        return main_skill_for_dev(dev_id)
+    elif user_id:
+        return main_skill_for_user(user_id)
 
 
 @skill.route('major_skills')
@@ -71,3 +85,17 @@ def skills_for_dev(join_table, dev_id=None, user_id=None):
                 WHERE devs.user_id = %s;
             """.format(join_table), [user_id])
         return cur.fetchall()
+
+
+def main_skill_for_dev(dev_id):
+    if dev_id:
+        with db.get_ib_cursor() as cur:
+            cur.execute(main_skill_query.format('devs.id'), [dev_id])
+            return cur.fetchone()
+
+
+def main_skill_for_user(user_id):
+    if user_id:
+        with db.get_ib_cursor() as cur:
+            cur.execute(main_skill_query.format('user_id'), [user_id])
+            return cur.fetchone()

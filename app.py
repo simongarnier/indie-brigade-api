@@ -1,23 +1,24 @@
-from blueprint.user import user
-from blueprint.dev import dev
-from blueprint.skill import skill
+from blueprints.user import user
+from blueprints.dev import dev
+from blueprints.skill import skill
 
 from flask import Flask, jsonify
 from utils import db, serialization
 
 app = Flask(__name__)
 app.json_encoder = serialization.DatetimeEncoder
+app.url_map.strict_slashes = False
 
 # User
-app.register_blueprint(user, url_prefix='/users')
+app.register_blueprint(user, url_prefix='/users/')
 
 # Dev
-app.register_blueprint(dev, url_prefix='/users/<int:user_id>/dev')
-app.register_blueprint(dev, url_prefix='/devs')
+app.register_blueprint(dev, url_prefix='/users/<int:user_id>/dev/')
+app.register_blueprint(dev, url_prefix='/devs/')
 
 # Skill
-app.register_blueprint(skill, url_prefix='/skills')
-app.register_blueprint(skill, url_prefix='/roles/<int:role_id>/skills')
+app.register_blueprint(skill, url_prefix='/skills/')
+app.register_blueprint(skill, url_prefix='/roles/<int:role_id>/skills/')
 app.register_blueprint(skill, url_prefix='/devs/<int:dev_id>/')
 app.register_blueprint(skill, url_prefix='/users/<int:user_id>/dev/')
 
@@ -33,4 +34,4 @@ def teardown(e):
     db.get_ib_conn().close()
 
 if __name__ == "__main__":
-    app.run(debug=False)
+    app.run(debug=True)

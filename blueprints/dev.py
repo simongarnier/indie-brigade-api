@@ -8,19 +8,19 @@ dev = NestableBlueprint('dev', __name__, parent_keys=['user_id'])
 @dev.route('')
 @serialization.serialized
 def index():
-    with db.get_ib_cursor() as cur:
-        user_id = dev.parent_ids['user_id']
-        if user_id is None:
+    user_id = dev.parent_ids['user_id']
+    if user_id is None:
+        with db.get_ib_cursor() as cur:
             cur.execute("""
                 SELECT id, description
                 FROM devs;
             """)
-        else:
-            return show()
         return cur.fetchall()
+    else:
+        return show()
 
 
-@dev.route('/<int:dev_id>')
+@dev.route('<int:dev_id>')
 @serialization.serialized
 def show(dev_id=None):
     with db.get_ib_cursor() as cur:
