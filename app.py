@@ -47,4 +47,4 @@ def teardown(e):
     db.get_ib_conn().close()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
