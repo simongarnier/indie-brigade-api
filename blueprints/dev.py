@@ -1,11 +1,12 @@
 from nestable_blueprint import NestableBlueprint
 from utils import serialization, db
+from flask import abort
 import skill
 
 dev = NestableBlueprint('dev', __name__, parent_keys=['user_id'])
 
 
-@dev.route('')
+@dev.route('', methods=['GET'])
 @serialization.serialized
 def index():
     user_id = dev.parent_ids['user_id']
@@ -20,7 +21,7 @@ def index():
         return show()
 
 
-@dev.route('<int:dev_id>')
+@dev.route('<int:dev_id>', methods=['GET'])
 @serialization.serialized
 def show(dev_id=None):
     with db.get_ib_cursor() as cur:
@@ -43,6 +44,8 @@ def show(dev_id=None):
                 FROM devs
                 WHERE user_id = %s;
             """, [user_id])
+        else:
+            abort(404)
         fetched_dev = cur.fetchone()
         fetched_dev['minor_skills'] = skill.skills_for_dev('dev_minor_skills', dev_id=dev_id, user_id=user_id)
         fetched_dev['major_skills'] = skill.skills_for_dev('dev_major_skills', dev_id=dev_id, user_id=user_id)

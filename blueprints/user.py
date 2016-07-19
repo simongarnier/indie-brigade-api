@@ -4,7 +4,7 @@ from utils import serialization, db
 user = Blueprint('user', __name__)
 
 
-@user.route('')
+@user.route('', methods=['GET'])
 @serialization.serialized
 def index():
     with db.get_ib_cursor() as cur:
@@ -15,7 +15,7 @@ def index():
         return cur.fetchall()
 
 
-@user.route('<int:user_id>')
+@user.route('<int:user_id>', methods=['GET'])
 @serialization.serialized
 def show(user_id):
     with db.get_ib_cursor() as cur:
