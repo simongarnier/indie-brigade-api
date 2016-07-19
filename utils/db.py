@@ -1,6 +1,9 @@
 from psycopg2 import extras, connect
 from flask import g, abort
 import os
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 
 def record_not_found(f):
@@ -13,7 +16,7 @@ def record_not_found(f):
         return decorator
 
 
-class NotFoundRealDictCursor(extras.RealDictCursor):
+class IBCursor(extras.RealDictCursor, extras.LoggingCursor):
 
     @record_not_found
     def fetchall(self):
@@ -31,27 +34,29 @@ class NotFoundRealDictCursor(extras.RealDictCursor):
 def get_ib_conn():
     conn = getattr(g, '_ib_conn', None)
     if conn is None:
-        ib_host = "45.55.219.203"
-        ib_port = "5432"
+        base_config = {
+            'host': '45.55.219.203',
+            'port': '5432',
+            'user': 'indiebrigade',
+            'connection_factory': extras.LoggingConnection
+        }
         conn = g._ib_conn = {
             "dev": connect(
-                host=ib_host,
-                port=ib_port,
                 database="indiebrigade_development",
-                user="indiebrigade",
-                password="n0n0n0n0"
+                password="n0n0n0n0",
+                **base_config
             ),
             "production": connect(
-                host=ib_host,
-                port=ib_port,
                 database="indiebrigade_production",
-                user="indiebrigade",
-                password=os.getenv("INDIEBRIGADE_DATABASE_PASSWORD")
+                password=os.getenv("INDIEBRIGADE_DATABASE_PASSWORD"),
+                **base_config
             )
         }[os.getenv("INDIEBRIGADE_DB", "dev")]
+        conn.initialize(logging.getLogger('DB'))
     return conn
 
 
+
 def get_ib_cursor():
-    return get_ib_conn().cursor(cursor_factory=NotFoundRealDictCursor)
+    return get_ib_conn().cursor(cursor_factory=IBCursor)
 
